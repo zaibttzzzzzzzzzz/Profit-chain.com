@@ -3,637 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProfitChain - Decentralized MLM System</title>
+    <title>ProfitChain - Working Demo</title>
+    
+    <!-- Ethers.js Library -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
 
-    <!-- 💠 STEP 1: CSS STYLES 💠 -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-
+        /* ========== CSS Styling (Black & Gold Theme) ========== */
         :root {
             --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --primary-gold: #ffd700;
-            --secondary-gold: #f0c400;
-            --text-color: #e0e0e0;
+            --primary-color: #1a1a1a;
+            --secondary-color: #242424;
+            --gold-color: #FFD700;
+            --text-color: #E0E0E0;
             --text-muted: #888;
-            --border-color: #333;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
         }
 
-        .main-header {
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--gold-color);
+            padding-bottom: 15px;
         }
 
-        .logo { display: flex; align-items: center; }
-        .logo-img { height: 40px; margin-right: 15px; }
-        .logo h1 { font-size: 1.5rem; color: var(--primary-gold); margin: 0; }
+        .logo h1 {
+            color: var(--gold-color);
+            margin: 0;
+            text-shadow: 0 0 5px var(--gold-color);
+        }
+
+        .action-button {
+            background-color: var(--gold-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .action-button:hover {
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            transform: translateY(-2px);
+        }
+
+        .action-button:disabled {
+            background-color: #555;
+            color: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .card {
+            background-color: var(--primary-color);
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 25px;
+            border: 1px solid var(--secondary-color);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--gold-color);
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--gold-color);
+            margin: 0 0 8px 0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
         
-        .main-nav .nav-btn {
-            background: none; border: 1px solid var(--primary-gold); color: var(--primary-gold);
-            padding: 0.5rem 1rem; margin-left: 10px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
+        .referral-section {
+            margin-top: 25px;
+            text-align: center;
         }
-        .main-nav .nav-btn:hover { background-color: var(--primary-gold); color: var(--bg-color); }
+        .referral-section input {
+            width: calc(100% - 100px);
+            padding: 12px;
+            border: 1px solid var(--gold-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .referral-section button {
+            padding: 12px 15px;
+            border: none;
+            background: var(--gold-color);
+            color: var(--bg-color);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #statusMessage {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success { background-color: #28a745; color: white; }
+        .error { background-color: #dc3545; color: white; }
         
-        #app-container { padding: 2rem; }
-        .page-view { display: none; }
-        .page-view.active { display: block; }
-        
-        .connect-card {
-            max-width: 500px; margin: 5rem auto; background: var(--card-bg);
-            padding: 2rem; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-gold); color: #000; border: none; padding: 0.8rem 1.5rem;
-            font-size: 1rem; font-weight: 600; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;
-        }
-        .btn-primary:hover { background-color: var(--secondary-gold); }
-        .btn-primary:disabled { background-color: #555; color: #999; cursor: not-allowed; }
-
-        .btn-secondary {
-            background-color: transparent; color: var(--primary-gold); border: 1px solid var(--primary-gold);
-            padding: 0.8rem 1.5rem; border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
-        }
-        .btn-secondary:hover { background-color: var(--primary-gold); color: #000; }
-        .btn-large { width: 80%; margin-top: 1rem; }
-
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-        .dashboard-card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); }
-        .dashboard-card h3 { margin-top: 0; color: var(--primary-gold); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .dashboard-card ul { list-style: none; padding: 0; }
-        .dashboard-card li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #2a2a2a; }
-        .dashboard-card li strong { color: var(--text-muted); }
-
-        .stat-card p { font-size: 2rem; font-weight: 700; color: var(--primary-gold); text-align: center; margin: 1rem 0 0; }
-        .address-text { font-size: 1rem !important; word-break: break-all; }
-
-        .referral-box { display: flex; }
-        .referral-box input { width: 100%; padding: 0.5rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px 0 0 5px; }
-        .referral-box button { padding: 0.5rem 1rem; background: var(--primary-gold); color: #000; border: none; cursor: pointer; border-radius: 0 5px 5px 0; }
-
-        .level-bar { width: 100%; height: 25px; background: #333; border-radius: 15px; overflow: hidden; }
-        .level-progress { height: 100%; background: linear-gradient(90deg, var(--secondary-gold), var(--primary-gold)); width: 10%; transition: width 0.5s ease-in-out; }
-        
-        .action-buttons { display: flex; gap: 10px; margin-bottom: 1rem; }
-        .price-note, .small-text { font-size: 0.9rem; color: var(--text-muted); margin-top: 1rem; }
-        .small-text { font-size: 0.8rem; }
-        
-        .reward-card, .reality-card { text-align: center; }
-        .reward-card p, .reality-card p { font-size: 1.2rem; }
-
-        .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background-color: var(--card-bg); padding: 2rem; border-radius: 10px; max-width: 600px;
-            width: 90%; position: relative; border: 1px solid var(--primary-gold);
-        }
-        .close-btn { position: absolute; top: 10px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-        
-        .solidity-code { background-color: #000; border: 1px solid var(--border-color); padding: 1rem; margin-top: 2rem; border-radius: 8px; }
-        .solidity-code h2 { color: var(--primary-gold); }
-        .solidity-code pre { white-space: pre-wrap; word-wrap: break-word; color: #ccc; font-family: 'Courier New', Courier, monospace; }
-
-        @media (max-width: 768px) {
-            .main-header { flex-direction: column; gap: 1rem; }
-            .main-nav { width: 100%; display: flex; justify-content: space-around; }
-            .main-nav .nav-btn { padding: 0.5rem; font-size: 0.8rem; }
-        }
     </style>
 </head>
 <body>
 
-    <!-- 💠 STEP 2: HTML CONTENT 💠 -->
-    <header class="main-header">
-        <div class="logo">
-            <img src="https://i.imgur.com/gJeZ6T3.png" alt="Logo" class="logo-img">
-            <h1>ProfitChain</h1>
-        </div>
-        <nav class="main-nav">
-            <button class="nav-btn" data-target="dashboard-page">Dashboard</button>
-            <button class="nav-btn" data-target="account-page">My Account</button>
-            <button class="nav-btn" data-target="team-page">My Team</button>
-            <button id="show-plan-btn" class="nav-btn">System Plan</button>
-        </nav>
-    </header>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo"><h1>ProfitChain</h1></div>
+            <button id="connectWalletBtn" class="action-button">Connect Wallet</button>
+        </header>
 
-    <main id="app-container">
+        <!-- Status Message Area -->
+        <div id="statusMessage" class="hidden"></div>
 
-        <div id="connect-wallet-view" class="page-view active">
-            <div class="connect-card">
-                <h2>Welcome to ProfitChain</h2>
-                <p>Connect your Web3 wallet to join the future of decentralized earning.</p>
-                <button id="connect-wallet-btn" class="btn-primary btn-large">🔗 Connect Wallet</button>
-            </div>
-        </div>
-        
-        <div id="register-view" class="page-view">
-            <div class="connect-card">
-                <h2>Join ProfitChain</h2>
-                <p>You have been referred by User ID: <span id="referrer-id-display">N/A</span></p>
-                <p class="price-note">Joining Fee: <span id="joining-fee">100</span> POL</p>
-                <p class="small-text">You will need to approve the contract to spend your POL tokens first.</p>
-                <button id="approve-btn" class="btn-secondary btn-large">1. Approve POL Spending</button>
-                <button id="register-btn" class="btn-primary btn-large" disabled>2. Register Now</button>
+        <!-- Registration Form (Shuru mein chupa hua hoga) -->
+        <div id="registerSection" class="card hidden">
+            <h2>Join ProfitChain</h2>
+            <p style="text-align: center;">Wallet connect ho gaya hai. Join karne ke liye Register karein.</p>
+            <div style="text-align: center;">
+                <button id="registerBtn" class="action-button">Register Now (Fee: 0.02 ETH)</button>
             </div>
         </div>
 
-        <div id="dashboard-page" class="page-view">
-            <div class="dashboard-grid">
-                <div class="dashboard-card stat-card">
-                    <h3>Community Size</h3>
-                    <p id="community-size">--</p>
-                </div>
-                <div class="dashboard-card stat-card">
-                    <h3>Your Wallet</h3>
-                    <p id="wallet-address" class="address-text">0x...</p>
-                </div>
-                <div class="dashboard-card main-card">
-                    <h3>User Dashboard</h3>
-                    <ul>
-                        <li><strong>User ID:</strong> <span id="user-id">--</span></li>
-                        <li><strong>Activation Date:</strong> <span id="activation-date">--</span></li>
-                        <li><strong>Total Earnings:</strong> <span id="total-earnings">-- POL</span></li>
-                        <li><strong>Direct Referrals:</strong> <span id="direct-referrals">--</span></li>
-                        <li><strong>Current Level:</strong> <span id="current-level">--</span></li>
-                    </ul>
-                </div>
-                <div class="dashboard-card referral-card">
-                    <h3>Your Referral Link</h3>
-                    <div class="referral-box">
-                        <input type="text" id="referral-link" readonly>
-                        <button id="copy-referral-btn">Copy</button>
-                    </div>
-                </div>
-                <div class="dashboard-card">
-                    <h3>Level Status (1-10)</h3>
-                    <div id="level-status-bar" class="level-bar">
-                        <div class="level-progress"></div>
-                    </div>
-                </div>
-                <div class="dashboard-card">
-                    <h3>Actions</h3>
-                    <div class="action-buttons">
-                        <button class="btn-secondary">Withdraw</button>
-                        <button class="btn-secondary">Deposit</button>
-                        <button id="upgrade-level-btn" class="btn-primary">Upgrade Level</button>
-                    </div>
-                     <p class="price-note">Next Level (<span id="next-level-num">--</span>) Cost: <span id="upgrade-cost">--</span> POL</p>
-                </div>
-                <div class="dashboard-card reward-card">
-                    <h3>Reward Pool (Unlocks at Lvl 8)</h3>
-                    <p>Status: <span id="reward-status">Locked 🔒</span></p>
-                    <p>Pool Balance: <span id="reward-pool-balance">--</span> POL</p>
-                </div>
-                <div class="dashboard-card reality-card">
-                    <h3>Reality Income (Unlocks at Lvl 10)</h3>
-                    <p>Status: <span id="reality-status">Locked 🔒</span></p>
-                    <p>Pool Balance: <span id="reality-pool-balance">--</span> POL</p>
-                </div>
+        <!-- Main Dashboard (Register hone ke baad dikhega) -->
+        <div id="dashboardSection" class="card hidden">
+            <h2>My Dashboard</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><h3>User ID</h3><p id="userId">---</p></div>
+                <div class="stat-card"><h3>Current Level</h3><p id="currentLevel">---</p></div>
+                <div class="stat-card"><h3>Total Earnings</h3><p id="totalEarnings">--- POL</p></div>
+                <div class="stat-card"><h3>Direct Referrals</h3><p id="directReferrals">---</p></div>
             </div>
-        </div>
 
-        <div id="account-page" class="page-view"><div class="connect-card"><h2>My Account</h2><p>This page can show detailed transaction history, earnings breakdown, etc.</p></div></div>
-        <div id="team-page" class="page-view"><div class="connect-card"><h2>My Team</h2><p>This page can display a tree view of your direct and indirect referrals.</p></div></div>
-    </main>
-
-    <div id="system-plan-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">×</span>
-            <h2>ProfitChain System Plan</h2>
-            <h3>Income Distribution (100%)</h3>
-            <ul>
-                <li><strong>30% → Direct Referral Income:</strong> Paid instantly to the direct referrer.</li>
-                <li><strong>30% → Upline Income:</strong> 1% paid to each of the 15 uplines. If an upline doesn't exist, the share goes to the owner.</li>
-                <li><strong>30% → Downline Income:</strong> Paid to the direct referrer to support their team.</li>
-                <li><strong>10% → Reserved Pools & Fees:</strong>
-                    <ul>
-                        <li><strong>5%</strong> to the Reward Pool.</li>
-                        <li><strong>3%</strong> to the Reality Income Pool.</li>
-                        <li><strong>2%</strong> to the System Owner Wallet.</li>
-                    </ul>
-                </li>
-            </ul>
-            <h3>🎁 Reward System</h3>
-            <p>Unlocks at Level 8. You receive a share from the 5% Reward Pool until you've earned 2x your total investment (from Levels 1-8).</p>
-            <h3>🏆 Reality Income</h3>
-            <p>Unlocks at Level 10. You receive a share from the 3% Reality Income Pool until you've earned 3x your total investment (from Levels 1-10).</p>
+            <div class="referral-section">
+                <input type="text" id="referralLink" readonly>
+                <button id="copyBtn">Copy</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px;">
+                 <button id="upgradeBtn" class="action-button">Upgrade to Level 2 (Fee: 0.04 ETH)</button>
+            </div>
         </div>
     </div>
-    
-    <!-- 💠 STEP 3: SOLIDITY SMART CONTRACTS (For Reference & Deployment) 💠 -->
-    <div class="solidity-code">
-        <h2>Smart Contracts (Deploy using Remix IDE)</h2>
-        <p>You must deploy these contracts to a blockchain first and then update the addresses in the JavaScript code below.</p>
-        
-        <hr>
-        <h3>1. POLToken.sol</h3>
-        <pre><code>
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
 
-// You need to import this in Remix IDE:
-// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-// import "@openzeppelin/contracts/access/Ownable.sol";
+<script>
+    // ========== JAVASCRIPT LOGIC (System ka Dimaag) ==========
 
-contract POLToken is ERC20, Ownable {
-    constructor() ERC20("ProfitChain Token", "POL") {
-        _mint(msg.sender, 1000000000 * 10**decimals());
+    // --- DOM Elements ko access karna ---
+    const connectBtn = document.getElementById('connectWalletBtn');
+    const registerSection = document.getElementById('registerSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const registerBtn = document.getElementById('registerBtn');
+    const upgradeBtn = document.getElementById('upgradeBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    // --- Level ki Fees (Aap inko change kar sakte hain) ---
+    const levelFees = [0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24];
+
+    // --- Global variables ---
+    let provider;
+    let signer;
+    let userAddress;
+
+    // --- Wallet Connect Function ---
+    async function connectWallet() {
+        if (typeof window.ethereum === 'undefined') {
+            return showStatus("Error: MetaMask not found. Please install it.", true);
+        }
+        try {
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            
+            connectBtn.innerText = `Connected: ${userAddress.substring(0, 6)}...`;
+            connectBtn.disabled = true;
+
+            showStatus("Wallet connected successfully!", false);
+            checkUserStatus();
+
+        } catch (err) {
+            showStatus("Error: Wallet connection failed. " + err.message, true);
+        }
     }
 
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
-    }
-}
-        </code></pre>
+    // --- User ka Status Check Karna (Registered hai ya nahi) ---
+    function checkUserStatus() {
+        // Hum user ka data browser ki 'localStorage' mein save kar rahe hain
+        const userData = JSON.parse(localStorage.getItem(userAddress));
 
-        <hr>
-        <h3>2. ProfitChain.sol</h3>
-        <pre><code>
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
-
-// You need to import this in Remix IDE:
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-contract ProfitChain {
-    address public owner;
-    IERC20 public polToken;
-
-    struct User {
-        uint256 id;
-        address userAddress;
-        address referrer;
-        uint256 activationTimestamp;
-        uint256 currentLevel;
-        uint256 totalEarnings;
-        uint256 totalInvestment;
-        uint256 directReferralsCount;
-    }
-
-    mapping(address => bool) public isUserActive;
-    mapping(address => User) public users;
-    mapping(uint256 => address) public idToAddress;
-    mapping(address => uint256) public addressToId;
-
-    uint256 public nextUserId = 1;
-    uint256 public totalCommunitySize;
-
-    uint256[] public levelPrices = [
-        100 ether, 200 ether, 300 ether, 400 ether, 500 ether,
-        600 ether, 700 ether, 800 ether, 900 ether, 1000 ether
-    ];
-
-    address public constant SYSTEM_OWNER_WALLET = 0xD5B0780E196A7D0ac60BfA057576B5c91d8F3826;
-    address public rewardPoolAddress;
-    address public realityPoolAddress;
-
-    event UserRegistered(uint256 indexed id, address indexed user, address indexed referrer);
-    event LevelUpgraded(address indexed user, uint256 newLevel, uint256 price);
-    
-    // Simple contract to hold pool funds
-    contract Pool { constructor() {} }
-
-    constructor(address _polTokenAddress) {
-        owner = msg.sender;
-        polToken = IERC20(_polTokenAddress);
-        rewardPoolAddress = address(new Pool());
-        realityPoolAddress = address(new Pool());
-    }
-
-    function register(address _referrer) public {
-        require(!isUserActive[msg.sender], "User already registered");
-        if (totalCommunitySize == 0) {
-            require(_referrer == owner, "First user must be referred by owner");
+        if (userData && userData.isRegistered) {
+            // Agar user registered hai, to dashboard dikhao
+            registerSection.classList.add('hidden');
+            dashboardSection.classList.remove('hidden');
+            updateDashboard(userData);
         } else {
-            require(isUserActive[_referrer], "Referrer not active");
+            // Agar registered nahi hai, to registration form dikhao
+            registerSection.classList.remove('hidden');
+            dashboardSection.classList.add('hidden');
         }
+    }
 
-        uint256 registrationFee = levelPrices[0];
-        require(polToken.transferFrom(msg.sender, address(this), registrationFee), "Token transfer failed");
+    // --- User ko Register Karne ka Function ---
+    function handleRegister() {
+        showStatus("Simulating registration... Please wait.", false);
 
-        users[msg.sender] = User(nextUserId, msg.sender, _referrer, block.timestamp, 1, 0, registrationFee, 0);
-        isUserActive[msg.sender] = true;
-        idToAddress[nextUserId] = msg.sender;
-        addressToId[msg.sender] = nextUserId;
-        nextUserId++;
-        totalCommunitySize++;
-        if(isUserActive[_referrer]) { users[_referrer].directReferralsCount++; }
-        
-        distributeIncome(registrationFee, _referrer);
-        emit UserRegistered(users[msg.sender].id, msg.sender, _referrer);
+        // Naye user ka data tayyar karo
+        const newUserData = {
+            isRegistered: true,
+            userId: Math.floor(1000 + Math.random() * 9000), // Random ID
+            level: 1,
+            earnings: 0,
+            referrals: 0,
+            joinDate: new Date().toLocaleDateString()
+        };
+
+        // Is data ko localStorage mein save karo
+        localStorage.setItem(userAddress, JSON.stringify(newUserData));
+
+        // Income distribution ki simulation console mein dikhao
+        console.log("--- SIMULATING INCOME DISTRIBUTION ---");
+        console.log(`Registration Fee: ${levelFees[0]} ETH`);
+        console.log(`30% Direct Income: ${levelFees[0] * 0.3} ETH`);
+        console.log(`30% Upline Income: ${levelFees[0] * 0.3} ETH`);
+        console.log(`30% Downline Income: ${levelFees[0] * 0.3} ETH`);
+        console.log(`10% Reserved Pool: ${levelFees[0] * 0.1} ETH`);
+        console.log("-------------------------------------");
+
+        setTimeout(() => {
+            showStatus("Registration successful! Welcome.", false);
+            checkUserStatus();
+        }, 1500); // Thori der ruko taake simulation lage
     }
     
-    function upgradeLevel() public {
-        require(isUserActive[msg.sender], "Not an active user");
-        User storage user = users[msg.sender];
-        require(user.currentLevel < 10, "Max level");
-        uint256 nextLevel = user.currentLevel + 1;
-        uint256 upgradeFee = levelPrices[nextLevel - 1];
-        require(polToken.transferFrom(msg.sender, address(this), upgradeFee), "Token transfer failed");
-        user.currentLevel = nextLevel;
-        user.totalInvestment += upgradeFee;
-        distributeIncome(upgradeFee, user.referrer);
-        emit LevelUpgraded(msg.sender, nextLevel, upgradeFee);
-    }
+    // --- Level Upgrade Karne ka Function ---
+    function handleUpgrade() {
+        const userData = JSON.parse(localStorage.getItem(userAddress));
+        if (!userData || userData.level >= 10) {
+            showStatus("You are already at the maximum level.", true);
+            return;
+        }
 
-    function distributeIncome(uint256 _amount, address _referrer) private {
-        uint256 directIncome = (_amount * 30) / 100;
-        sendIncome(_referrer, directIncome);
-        users[_referrer].totalEarnings += directIncome;
+        const nextLevel = userData.level + 1;
+        const upgradeFee = levelFees[userData.level];
         
-        uint256 uplineChunk = (_amount * 1) / 100;
-        address currentUpline = _referrer;
-        for (uint i = 0; i < 15; i++) {
-            if (currentUpline != address(0) && isUserActive[currentUpline]) {
-                sendIncome(currentUpline, uplineChunk);
-                users[currentUpline].totalEarnings += uplineChunk;
-                currentUpline = users[currentUpline].referrer; 
-            } else { sendIncome(owner, uplineChunk); }
-        }
+        showStatus(`Simulating upgrade to Level ${nextLevel}...`, false);
+
+        // User ka level update karo
+        userData.level = nextLevel;
+        localStorage.setItem(userAddress, JSON.stringify(userData));
+
+        // Income distribution ki simulation console mein dikhao
+        console.log(`--- SIMULATING UPGRADE INCOME DISTRIBUTION (Level ${nextLevel}) ---`);
+        console.log(`Upgrade Fee: ${upgradeFee} ETH`);
+        // ... (Yahan bhi poori distribution dikha sakte hain)
+
+        setTimeout(() => {
+            showStatus(`Successfully upgraded to Level ${nextLevel}!`, false);
+            updateDashboard(userData);
+        }, 1500);
+    }
+
+
+    // --- Dashboard ko Data se Update Karna ---
+    function updateDashboard(userData) {
+        document.getElementById('userId').innerText = userData.userId;
+        document.getElementById('currentLevel').innerText = userData.level;
+        document.getElementById('totalEarnings').innerText = userData.earnings;
+        document.getElementById('directReferrals').innerText = userData.referrals;
         
-        uint256 downlineIncome = (_amount * 30) / 100;
-        sendIncome(_referrer, downlineIncome);
-        users[_referrer].totalEarnings += downlineIncome;
+        // Referral link generate karo
+        document.getElementById('referralLink').value = `${window.location.origin}${window.location.pathname}?ref=${userData.userId}`;
 
-        polToken.transfer(rewardPoolAddress, (_amount * 5) / 100);
-        polToken.transfer(realityPoolAddress, (_amount * 3) / 100);
-        polToken.transfer(SYSTEM_OWNER_WALLET, (_amount * 2) / 100);
+        // Upgrade button ko update karo
+        if (userData.level < 10) {
+            upgradeBtn.innerText = `Upgrade to Level ${userData.level + 1} (Fee: ${levelFees[userData.level]} ETH)`;
+            upgradeBtn.disabled = false;
+        } else {
+            upgradeBtn.innerText = "Max Level Reached";
+            upgradeBtn.disabled = true;
+        }
     }
-    
-    function sendIncome(address _to, uint256 _amount) private {
-        if (_amount > 0) { polToken.transfer(_to, _amount); }
+
+    // --- Helper Functions ---
+    function showStatus(message, isError) {
+        statusMessage.textContent = message;
+        statusMessage.className = isError ? 'error' : 'success';
+        statusMessage.classList.remove('hidden');
     }
 
-    function getUserDetails(address _userAddress) public view returns (User memory, string memory, uint256, uint256) {
-        require(isUserActive[_userAddress], "User not found");
-        User memory user = users[_userAddress];
-        string memory referralLink = string(abi.encodePacked("YOUR_WEBSITE_URL/?ref=", _uintToAsciiString(user.id)));
-        return (user, referralLink, polToken.balanceOf(rewardPoolAddress), polToken.balanceOf(realityPoolAddress));
+    function copyReferralLink() {
+        const referralLinkInput = document.getElementById('referralLink');
+        referralLinkInput.select();
+        document.execCommand('copy');
+        showStatus("Referral link copied!", false);
     }
-    
-    function _uintToAsciiString(uint256 _number) private pure returns (string memory) {
-        if (_number == 0) return "0";
-        uint256 temp = _number; uint256 digits;
-        while (temp != 0) { digits++; temp /= 10; }
-        bytes memory buffer = new bytes(digits);
-        while (_number != 0) { digits -= 1; buffer[digits] = bytes1(uint8(48 + _number % 10)); _number /= 10; }
-        return string(buffer);
-    }
-}
-        </code></pre>
-    </div>
 
-    <!-- 💠 STEP 4: JAVASCRIPT LOGIC 💠 -->
-    
-    <!-- Ethers.js library for Web3 communication -->
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    // --- Event Listeners (Buttons ke click par function chalana) ---
+    connectBtn.addEventListener('click', connectWallet);
+    registerBtn.addEventListener('click', handleRegister);
+    upgradeBtn.addEventListener('click', handleUpgrade);
+    copyBtn.addEventListener('click', copyReferralLink);
 
-    <script>
-        // --- ⚠️ IMPORTANT: CONFIGURE THESE VALUES ⚠️ ---
-        // Deploy contracts first, then paste the addresses and ABI here.
-        const PROFITCHAIN_CONTRACT_ADDRESS = "0x..."; // 👈 PASTE PROFITCHAIN CONTRACT ADDRESS HERE
-        const POL_TOKEN_CONTRACT_ADDRESS = "0x...";   // 👈 PASTE POL TOKEN CONTRACT ADDRESS HERE
-
-        const PROFITCHAIN_ABI = [
-            // 👈 PASTE PROFITCHAIN CONTRACT ABI HERE (Get from Remix after compiling)
-            // Example: "function register(address _referrer)", "function ...", ...
-        ];
-
-        // This is a minimal ERC20 ABI for approve and allowance checks
-        const POL_TOKEN_ABI = [
-            "function approve(address spender, uint256 amount) returns (bool)",
-            "function allowance(address owner, address spender) view returns (uint256)"
-        ];
-
-        // --- GLOBAL VARIABLES ---
-        let provider, signer, userAddress, profitChainContract, polTokenContract;
-
-        // --- DOM ELEMENTS ---
-        const connectWalletBtn = document.getElementById('connect-wallet-btn');
-        const showPlanBtn = document.getElementById('show-plan-btn');
-        const allNavBtns = document.querySelectorAll('.nav-btn');
-
-        // --- EVENT LISTENERS ---
-        window.addEventListener('DOMContentLoaded', () => {
-            connectWalletBtn.addEventListener('click', connectWallet);
-            
-            const modal = document.getElementById('system-plan-modal');
-            const closeBtn = document.querySelector('.modal .close-btn');
-            showPlanBtn.onclick = () => modal.style.display = 'flex';
-            closeBtn.onclick = () => modal.style.display = 'none';
-            window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
-
-            allNavBtns.forEach(btn => {
-                if (btn.id !== 'show-plan-btn') {
-                    btn.addEventListener('click', () => {
-                        const targetId = btn.getAttribute('data-target');
-                        if (document.getElementById(targetId)) {
-                             showView(targetId);
-                        }
-                    });
-                }
-            });
-        });
-
-        // --- CORE FUNCTIONS ---
-        async function connectWallet() {
-            if (typeof window.ethereum === 'undefined') {
-                return alert('Please install a Web3 wallet like MetaMask or use a DApp browser.');
-            }
-            try {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                userAddress = await signer.getAddress();
-
-                profitChainContract = new ethers.Contract(PROFITCHAIN_CONTRACT_ADDRESS, PROFITCHAIN_ABI, signer);
-                polTokenContract = new ethers.Contract(POL_TOKEN_CONTRACT_ADDRESS, POL_TOKEN_ABI, signer);
-
-                console.log("Wallet Connected:", userAddress);
-                checkUserStatus();
-            } catch (error) {
-                console.error("Failed to connect wallet:", error);
-                alert(`Error connecting wallet: ${error.message}`);
-            }
-        }
-
-        async function checkUserStatus() {
-            if (!profitChainContract) return;
-            try {
-                const isActive = await profitChainContract.isUserActive(userAddress);
-                if (isActive) {
-                    await loadDashboard();
-                } else {
-                    setupRegistration();
-                }
-            } catch (error) {
-                console.error("Error checking user status:", error);
-                alert("Could not connect to the ProfitChain contract. Please ensure the contract address and ABI in the script are correct and you are on the right network.");
-            }
-        }
-
-        function showView(viewId) {
-            document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
-            const targetView = document.getElementById(viewId);
-            if (targetView) {
-                targetView.classList.add('active');
-            } else {
-                document.getElementById('connect-wallet-view').classList.add('active');
-            }
-        }
-
-        async function setupRegistration() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const referrerId = urlParams.get('ref') || "1"; // Default to ID 1 if no ref
-
-            document.getElementById('referrer-id-display').textContent = referrerId;
-            
-            try {
-                const ownerAddress = await profitChainContract.owner();
-                const referrerAddress = referrerId === "1" ? ownerAddress : await profitChainContract.idToAddress(referrerId);
-                
-                if (!referrerAddress || referrerAddress === ethers.constants.AddressZero) {
-                    alert("Invalid referrer ID. Defaulting to owner.");
-                    // Re-fetch using owner as referrer
-                }
-                
-                const joiningFee = await profitChainContract.levelPrices(0);
-                document.getElementById('joining-fee').textContent = ethers.utils.formatEther(joiningFee);
-                
-                showView('register-view');
-
-                const approveBtn = document.getElementById('approve-btn');
-                const registerBtn = document.getElementById('register-btn');
-
-                approveBtn.onclick = async () => {
-                    approveBtn.textContent = "Approving...";
-                    approveBtn.disabled = true;
-                    try {
-                        const tx = await polTokenContract.approve(PROFITCHAIN_CONTRACT_ADDRESS, joiningFee);
-                        await tx.wait();
-                        alert("Approval successful! You can now register.");
-                        approveBtn.style.display = 'none';
-                        registerBtn.disabled = false;
-                    } catch (err) {
-                        console.error("Approval failed:", err);
-                        alert("Approval failed. Check console for details.");
-                        approveBtn.textContent = "1. Approve POL Spending";
-                        approveBtn.disabled = false;
-                    }
-                };
-
-                registerBtn.onclick = async () => {
-                    registerBtn.textContent = "Registering...";
-                    registerBtn.disabled = true;
-                    try {
-                        const tx = await profitChainContract.register(referrerAddress);
-                        await tx.wait();
-                        alert("Registration successful! Welcome to ProfitChain.");
-                        await loadDashboard();
-                    } catch (err) {
-                        console.error("Registration failed:", err);
-                        alert(`Registration failed: ${err.reason || err.message}`);
-                        registerBtn.textContent = "2. Register Now";
-                        registerBtn.disabled = false;
-                    }
-                };
-            } catch (error) {
-                 console.error("Error during registration setup:", error);
-                 alert("Could not set up registration. Please check referral ID and contract status.");
-            }
-        }
-
-        async function loadDashboard() {
-            try {
-                const [userDetails, referralLink, rewardPool, realityPool] = await profitChainContract.getUserDetails(userAddress);
-                
-                document.getElementById('wallet-address').textContent = userAddress;
-                document.getElementById('user-id').textContent = userDetails.id.toString();
-                document.getElementById('activation-date').textContent = new Date(userDetails.activationTimestamp * 1000).toLocaleDateString();
-                document.getElementById('total-earnings').textContent = `${ethers.utils.formatEther(userDetails.totalEarnings)} POL`;
-                document.getElementById('direct-referrals').textContent = userDetails.directReferralsCount.toString();
-                
-                const currentLevel = userDetails.currentLevel.toNumber();
-                document.getElementById('current-level').textContent = currentLevel;
-                document.querySelector('.level-progress').style.width = `${currentLevel * 10}%`;
-
-                const referralInput = document.getElementById('referral-link');
-                referralInput.value = referralLink;
-                document.getElementById('copy-referral-btn').onclick = () => {
-                    referralInput.select(); document.execCommand('copy'); alert('Referral link copied!');
-                };
-
-                const upgradeBtn = document.getElementById('upgrade-level-btn');
-                if (currentLevel >= 10) {
-                    upgradeBtn.textContent = "Max Level Reached";
-                    upgradeBtn.disabled = true;
-                    document.getElementById('upgrade-cost').textContent = "N/A";
-                    document.getElementById('next-level-num').textContent = "MAX";
-                } else {
-                    const upgradeCost = await profitChainContract.levelPrices(currentLevel);
-                    document.getElementById('upgrade-cost').textContent = `${ethers.utils.formatEther(upgradeCost)} POL`;
-                    document.getElementById('next-level-num').textContent = currentLevel + 1;
-                    upgradeBtn.onclick = () => handleUpgrade(upgradeCost);
-                    upgradeBtn.disabled = false;
-                    upgradeBtn.textContent = "Upgrade Level";
-                }
-                
-                document.getElementById('reward-pool-balance').textContent = `${ethers.utils.formatEther(rewardPool)} POL`;
-                document.getElementById('reality-pool-balance').textContent = `${ethers.utils.formatEther(realityPool)} POL`;
-                document.getElementById('reward-status').textContent = currentLevel >= 8 ? "Unlocked ✅" : "Locked 🔒";
-                document.getElementById('reality-status').textContent = currentLevel >= 10 ? "Unlocked ✅" : "Locked 🔒";
-
-                showView('dashboard-page');
-            } catch (error) {
-                console.error("Failed to load dashboard data:", error);
-                alert("Could not load dashboard data. Please refresh.");
-                showView('connect-wallet-view');
-            }
-        }
-        
-        async function handleUpgrade(upgradeCost) {
-            const upgradeBtn = document.getElementById('upgrade-level-btn');
-            try {
-                const allowance = await polTokenContract.allowance(userAddress, PROFITCHAIN_CONTRACT_ADDRESS);
-                if (allowance.lt(upgradeCost)) {
-                    alert("Approval needed for upgrade fee. Approving now...");
-                    upgradeBtn.disabled = true;
-                    upgradeBtn.textContent = "Approving...";
-                    const approveTx = await polTokenContract.approve(PROFITCHAIN_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
-                    await approveTx.wait();
-                    alert("Approval successful. You can now click Upgrade again.");
-                    upgradeBtn.disabled = false;
-                    upgradeBtn.textContent = "Upgrade Level";
-                    return;
-                }
-
-                upgradeBtn.disabled = true;
-                upgradeBtn.textContent = "Upgrading...";
-                const upgradeTx = await profitChainContract.upgradeLevel();
-                await upgradeTx.wait();
-                alert("Level upgrade successful!");
-                await loadDashboard();
-            } catch(error) {
-                console.error("Upgrade failed:", error);
-                alert(`Upgrade failed: ${error.reason || error.message}`);
-                upgradeBtn.disabled = false;
-                upgradeBtn.textContent = "Upgrade Level";
-            }
-        }
-    </script>
+</script>
 </body>
-</html>
+    </html>
